@@ -1,50 +1,55 @@
 <?php
-// Set the content-type
-header('Content-Type: image/png');
+// Screen resolution retrieval (fallback included)
+$width = imagesx(imagecreatetruecolor(1, 1));
+$height = imagesy(imagecreatetruecolor(1, 1));
 
-// Create the image
-$width = 1366; // Replace with your screen width
-$height = 768; // Replace with your screen height
-$image = imagecreatetruecolor($width, $height);
-
-// Colors
-$white = imagecolorallocate($image, 255, 255, 255);
-$black = imagecolorallocate($image, 0, 0, 0);
-
-// Fill the background with white
-imagefill($image, 0, 0, $white);
-
-// Initialize variables
-$x = 0;
-$y = 0;
-$padding = 10; // Padding between shapes
-
-// Draw the pattern
-while ($width > 0 && $height > 0) {
-    // Draw rectangle
-    imagerectangle($image, $x, $y, $x + $width - 1, $y + $height - 1, $black);
-
-    // Reduce dimensions for the circle
-    $width -= 2 * $padding;
-    $height -= 2 * $padding;
-    $x += $padding;
-    $y += $padding;
-
-    // Check if there's enough space for a circle
-    if ($width > 0 && $height > 0) {
-        // Draw circle
-        $radius = min($width, $height) / 2;
-        imagefilledellipse($image, $x + $radius, $y + $radius, $width, $height, $black);
-
-        // Reduce dimensions for the next rectangle
-        $width -= 2 * $radius;
-        $height -= 2 * $radius;
-        $x += $radius;
-        $y += $radius;
-    }
+if (!$width || !$height) {
+  $width = 800;
+  $height = 600;
 }
 
-// Output the image
+// Create true color image
+$image = imagecreatetruecolor($width, $height);
+
+// Define color palette for a gradient effect
+$colors = [
+  imagecolorallocate($image, 255, 0, 0),  // Red
+  imagecolorallocate($image, 255, 165, 0), // Orange
+  imagecolorallocate($image, 255, 255, 0), // Yellow
+  imagecolorallocate($image, 0, 255, 0),  // Green
+  imagecolorallocate($image, 0, 0, 255),  // Blue
+  imagecolorallocate($image, 75, 0, 130), // Indigo
+  imagecolorallocate($image, 238, 130, 238), // Violet
+];
+$numColors = count($colors);
+
+// Center coordinates
+$centerX = $width / 2;
+$centerY = $height / 2;
+
+// Loop variables
+$isRectangle = true;
+$currentSize = min($width, $height) / 2;
+$colorIndex = 0;
+
+while ($currentSize > 10) {
+  $color = $colors[$colorIndex % $numColors]; // Use color palette cyclically
+
+  if ($isRectangle) {
+    imagerectangle($image, $centerX - $currentSize / 2, $centerY - $currentSize / 2, $centerX + $currentSize / 2, $centerY + $currentSize / 2, $color);
+  } else {
+    imageellipse($image, $centerX, $centerY, $currentSize, $currentSize, $color);
+  }
+
+  // Reduce size and alternate shape type
+  $currentSize *= 0.8;
+  $isRectangle = !$isRectangle;
+  $colorIndex++;
+}
+
+// Send image header and display generated image
+header('Content-type: image/png');
 imagepng($image);
+
+// Clean up memory
 imagedestroy($image);
-?>
