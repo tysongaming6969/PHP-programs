@@ -53,3 +53,4 @@ imagepng($image);
 
 // Clean up memory
 imagedestroy($image);
+?>
